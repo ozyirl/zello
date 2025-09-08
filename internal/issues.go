@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"time"
 
 	"zel/lo/supabase"
 )
@@ -13,8 +12,8 @@ type Issue struct {
     Title       string    `json:"title"`
     Description string    `json:"description"`
     Status      string    `json:"status"`
-    UserID      string    `json:"user_id"`   // UUID in Supabase
-    CreatedAt   time.Time `json:"created_at"`
+    UserID      string    `json:"user_id"`   
+   CreatedAt string `json:"created_at"`
 }
 
 type CreateIssueRequest struct {
@@ -30,25 +29,38 @@ type User struct {
 }
 
 
+func ListIssues(client *supabase.Client) ([]Issue, error) {
+	var issues []Issue
+
+	_, err := client.From("issues").Select("*", "", false).ExecuteTo(&issues)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch issues: %w", err)
+	}
+
+	return issues, nil
+}
+
+
+
 func CreateIssue(client *supabase.Client, issueRequest CreateIssueRequest, userID string) (*Issue, error) {
 	var issues []Issue
 
-	// Create the issue data with user ID
+	
 	issueData := map[string]interface{}{
 		"title":       issueRequest.Title,
 		"description": issueRequest.Description,
 		"user_id":     userID,
 	}
 
-	// Set default status if not provided
+	
 	if issueRequest.Status != "" {
 		issueData["status"] = issueRequest.Status
 	} else {
-		issueData["status"] = "open" // default status
+		issueData["status"] = "open" 
 	}
 
 	_, err := client.From("issues").Insert([]map[string]interface{}{issueData}, false, "", "minimal", "").ExecuteTo(&issues)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("error while creating a issue %w", err)
 	}

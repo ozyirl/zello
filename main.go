@@ -91,14 +91,11 @@ func main() {
 		fmt.Printf("User record created: ID=%d, Name=%s\n", user.ID, user.Name)
 	}
 
-	// _, err = client.Auth.SignInWithEmailPassword(email, password)
-	// if err != nil {
-	// 	log.Fatal("Error signing in:", err)
-	// }
-	// fmt.Println("Successfully authenticated!")
 
-	fmt.Println("press i to create an issue")
-	fmt.Scanf("%s", &option)
+
+	fmt.Println("press i to create an issue or l to list all issues")
+	
+		fmt.Scanf("%s", &option)
 	if option == "i"{
 		var title string
 		var description string
@@ -117,13 +114,23 @@ func main() {
 		} else {
 			fmt.Printf("Issue created: ID=%d, Title=%s, Description=%s\n", issue.ID, issue.Title, issue.Description)
 		}
-	}
-
-
-
+	} else if option == "l"{
 	
 
 
+		issues, err := internal.ListIssues(client)
+		if err != nil {
+			log.Fatal("Error listing issues:", err)
+		}
+		fmt.Println("Issues:")
+		for _, issue := range issues {
+			fmt.Printf("ID=%d, Title=%s, Description=%s\n", issue.ID, issue.Title, issue.Description)
+		}
+	
+	} else {
+		fmt.Println("Invalid option")
+	}
+	
 
 }
 
