@@ -1,16 +1,10 @@
 package internal
 
 import (
-	// "fmt"
-	// "log"
-	// "os"
-	// "strconv"
 	"fmt"
 	"time"
 
-	// "github.com/joho/godotenv"
-	// "github.com/supabase-community/gotrue-go/types"
-	"github.com/supabase-community/supabase-go"
+	"zel/lo/supabase"
 )
 
 
@@ -29,19 +23,39 @@ type CreateIssueRequest struct {
     Status      string `json:"status,omitempty"`
 }
 
-func CreateIssue(client *supabase.Client,issueRequest CreateIssueRequest) (*Issue,error){
+
+type User struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+
+func CreateIssue(client *supabase.Client, issueRequest CreateIssueRequest, userID string) (*Issue, error) {
 	var issues []Issue
 
-	_,err := client.From("issues").Insert([]CreateIssueRequest{issueRequest},false,"","*","").ExecuteTo(&issues)
-	if err != nil {
-		return nil, fmt.Errorf("error while creating a issue %w",err)
+	// Create the issue data with user ID
+	issueData := map[string]interface{}{
+		"title":       issueRequest.Title,
+		"description": issueRequest.Description,
+		"user_id":     userID,
 	}
 
+	// Set default status if not provided
+	if issueRequest.Status != "" {
+		issueData["status"] = issueRequest.Status
+	} else {
+		issueData["status"] = "open" // default status
+	}
+
+	_, err := client.From("issues").Insert([]map[string]interface{}{issueData}, false, "", "minimal", "").ExecuteTo(&issues)
+	
+	if err != nil {
+		return nil, fmt.Errorf("error while creating a issue %w", err)
+	}
 
 	if len(issues) == 0 {
 		return nil, fmt.Errorf("insert succeeded but no issue returned")
 	}
 
 	return &issues[0], nil
-	
 }
