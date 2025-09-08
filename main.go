@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"zel/lo/internal"
+	"zel/lo/ui"
 
 	"zel/lo/supabase"
 
@@ -64,7 +64,7 @@ func main() {
 		fmt.Println("enter your name:")
 		fmt.Scanf("%s", &name)
 		
-	
+		
 		signupRequest := authtypes.SignupRequest{
 			Email:    email,
 			Password: password,
@@ -82,7 +82,7 @@ func main() {
 		}
 		userID = session.User.ID.String()
 		
-	
+		
 		newUserRequest := CreateUserRequest{Name: name}
 		user, err := CreateUser(client, newUserRequest)
 		if err != nil {
@@ -92,48 +92,18 @@ func main() {
 	}
 
 
-
-	fmt.Println("press i to create an issue or l to list all issues")
-	
-		fmt.Scanf("%s", &option)
-	if option == "i"{
-		var title string
-		var description string
-		fmt.Println("enter the title of the issue:")
-		fmt.Scanf("%s", &title)
-		fmt.Println("enter the description of the issue:")
-		fmt.Scanf("%s", &description)
-		issueRequest := internal.CreateIssueRequest{Title: title, Description: description}
-		issue, err := internal.CreateIssue(client, issueRequest, userID)
-		if err != nil {
-			if strings.Contains(err.Error(), "EOF") {
-				fmt.Println("Issue created (no return body due to RLS).")
-			} else {
-				log.Fatal("Error creating issue:", err)
-			}
-		} else {
-			fmt.Printf("Issue created: ID=%d, Title=%s, Description=%s\n", issue.ID, issue.Title, issue.Description)
-		}
-	} else if option == "l"{
-	
-
-
-		issues, err := internal.ListIssues(client)
-		if err != nil {
-			log.Fatal("Error listing issues:", err)
-		}
-		fmt.Println("Issues:")
-		for _, issue := range issues {
-			fmt.Printf("ID=%d, Title=%s, Description=%s\n", issue.ID, issue.Title, issue.Description)
-		}
-	
-	} else {
-		fmt.Println("Invalid option")
+	// Launch the TUI (press Ctrl+C to quit)
+	if err := ui.Start(client, userID); err != nil {
+		log.Fatal(err)
 	}
+
+	
+	
+		
+	
 	
 
 }
-
 
 
 
